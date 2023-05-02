@@ -11,7 +11,7 @@ usage:
 		- Will use to files to generate some skill data(damage coefficients, cast times, condis applied, etc.)
 
 	OPTIONAL: arcdps .zvetc files
-		- Place into "arcdps_log_files" or provide a path to folder containing them
+		- Place into a folder named "arc_log_files" inside the root directory or provide a path to folder containing them
 		- Will use these files to run arc_dps_log_tools.exe to generate tick data
 		- Failure to provide these files will result in missing tick data
 		- If you already have tick data from arc_dps_log_tools.exe, you can place them in tick_data
