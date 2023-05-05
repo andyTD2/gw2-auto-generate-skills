@@ -91,6 +91,7 @@ def attachTickData(skills, skillTickData):
 
 def skillToJsonFormat(skill, professions):
         jsonEntry = {}
+        jsonEntry["skill_id"] = skill.id
         jsonEntry["skill_key"] = skill.name
         jsonEntry["weapon_type"] = skill.weaponType
         jsonEntry["cast_duration"] = skill.castDuration
