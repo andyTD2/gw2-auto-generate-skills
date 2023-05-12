@@ -94,8 +94,10 @@ def skillToJsonFormat(skill, professions):
         jsonEntry["skill_id"] = skill.id
         jsonEntry["skill_key"] = skill.name
         jsonEntry["weapon_type"] = skill.weaponType
-        jsonEntry["cast_duration"] = skill.castDuration
         jsonEntry["strike_on_tick_list"] = [skill.strikeOnTickList, skill.strikeOnTickList]
+
+
+        jsonEntry["cast_duration"] = [int(40 * round(skill.castDuration / 40)), skill.castDuration]
 
         if len(skill.coefficients) > 0:
             jsonEntry["damage_coefficient"] = skill.coefficients[0]
