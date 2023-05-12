@@ -24,6 +24,8 @@ class Skill:
         self.strikeOnTickList = []
         self.professions = []
         self.id = jsonData["skillID"]
+        self.onStrikeNumStacks = 0
+        self.hitCount = -1
 
 
         #assign values if found in json data
@@ -51,6 +53,9 @@ class Skill:
                 #sometimes multiple dmg coefficients are provided...
                 if "dmg_multiplier" in fact:
                     self.coefficients.append(fact["dmg_multiplier"])
+
+                if "hit_count" in fact:
+                    self.hitCount = fact["hit_count"]
 
                 if "text" in fact:
 
@@ -80,6 +85,7 @@ class Skill:
                     #api data, so all skills that apply condition must be
                     #manually reviewed...
                     if fact["text"] == "Apply Buff/Condition":
+
                         if fact["status"].upper() in conditions:
                             effect = {
                                 "effect": fact["status"],
@@ -91,6 +97,16 @@ class Skill:
 
                             self.onStrikeEffects.append(effect)
                             self.needsManualReview = True
+
+
+        #sometimes there are multiple buffs listed, if any of them match the number of hits we make
+        #an assumption that each hit applies said buff
+        #this is not a perfect assumption and needs to be manually checked
+        for effect in self.onStrikeEffects:
+            if "num_stacks" in effect and effect["num_stacks"] == self.hitCount:
+                effect["on_strike_num_stacks"] = 1
+                self.needsManualReview = True
+
 
         #if multiple damage coeffs are listed we need to manually review
         if len(self.coefficients) > 1:
