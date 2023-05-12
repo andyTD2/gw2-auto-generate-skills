@@ -16,6 +16,10 @@ def getSkillData(APIFileName, skills):
             if entry["skillID"] not in skills:
                 skill = Skill(entry)
                 skills[skill.id] = skill
+            else:
+                skills[entry["skillID"]].updateCastDur(entry)
+                #sometimes there are duplicate skills that are missing cast times, so we need to update the cast time everytime a duplicate is found
+                #otherwise it might default to 0 if there is a missing cast time
 
 
 
@@ -97,7 +101,7 @@ def skillToJsonFormat(skill, professions):
         jsonEntry["strike_on_tick_list"] = [skill.strikeOnTickList, skill.strikeOnTickList]
 
 
-        jsonEntry["cast_duration"] = [int(40 * round(skill.castDuration / 40)), skill.castDuration]
+        jsonEntry["cast_duration"] = [skill.castDuration]
 
         if len(skill.coefficients) > 0:
             jsonEntry["damage_coefficient"] = skill.coefficients[0]

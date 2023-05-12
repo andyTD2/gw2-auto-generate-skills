@@ -38,18 +38,7 @@ class Skill:
             self.weaponType = "empty_handed"
 
         #each prof has its own cast time in json; find avg...
-        modeSum = 0
-        numSamples = 0
-        for profession in jsonData["professionStats"]:
-            if "mode" in jsonData["professionStats"][profession]["durations"]:
-                modeSum += jsonData["professionStats"][profession]["durations"]["mode"]
-                numSamples += 1
-
-        if numSamples > 0:
-            self.castDuration = modeSum / numSamples
-            self.castDuration = int(40 * round(float(self.castDuration) / 40))  # round to nearest 40
-        else:
-            self.castDuration = 0
+        self.updateCastDur(jsonData)
 
         self.professions = jsonData["professions"].copy()
 
@@ -106,5 +95,18 @@ class Skill:
         #if multiple damage coeffs are listed we need to manually review
         if len(self.coefficients) > 1:
             self.needsManualReview = True
+
+    def updateCastDur(self, jsonData):
+        modeSum = 0
+        numSamples = 0
+        for profession in jsonData["professionStats"]:
+            if "mode" in jsonData["professionStats"][profession]["durations"]:
+                modeSum += jsonData["professionStats"][profession]["durations"]["mode"]
+                numSamples += 1
+
+        if numSamples != 0:
+            self.castDuration = modeSum / numSamples
+            self.castDuration = int(40 * round(float(self.castDuration) / 40))  # round to nearest 40
+
 
 
