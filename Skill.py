@@ -5,6 +5,11 @@ conditions = {"BLEEDING", "BURNING", "CONFUSION",
               "CHILLED", "CRIPPLED", "FEAR",
               "IMMOBILE", "SLOW", "TAUNT",
               "WEAKNESS", "VULNERABILITY"}
+
+boons = {"MIGHT", "ALACRITY", "VIGOR",
+         "SWIFTNESS", "STABILITY", "RESOLUTION",
+         "RESISTANCE", "REGENERATION", "QUICKNESS",
+         "PROTECTION", "FURY", "AEGIS"}
 class Skill:
 
     def __init__(self, jsonData,):
@@ -22,10 +27,13 @@ class Skill:
         self.onStrikeEffects = []
         self.coefficients = []
         self.strikeOnTickList = []
+        self.pulseOnTickList = []
         self.professions = []
         self.id = jsonData["skillID"]
         self.onStrikeNumStacks = 0
-        self.hitCount = -1
+        hitCount = -1
+        pulseCount = -1
+        effects = []
 
 
         #assign values if found in json data
@@ -55,7 +63,7 @@ class Skill:
                     self.coefficients.append(fact["dmg_multiplier"])
 
                 if "hit_count" in fact:
-                    self.hitCount = fact["hit_count"]
+                    hitCount = fact["hit_count"]
 
                 if "text" in fact:
 
@@ -79,14 +87,20 @@ class Skill:
                     if fact["text"] == "Casts":
                         self.ammo = fact["value"]
 
-                    #we only handle condition application for now
+                    if fact["text"] == "Pulses":
+                        pulseCount = fact["value"]
+                        for x in range(0, pulseCount):
+                            self.pulseOnTickList.append(x * 1000)
+
+
+                    #we only handle condition/boon application for now
                     #not feasible to consistently and accurate determine
                     #the mechanics of condition application based off the
                     #api data, so all skills that apply condition must be
                     #manually reviewed...
                     if fact["text"] == "Apply Buff/Condition":
 
-                        if fact["status"].upper() in conditions:
+                        if fact["status"].upper() in conditions or fact["status"].upper() in boons:
                             effect = {
                                 "effect": fact["status"],
                             }
@@ -94,18 +108,42 @@ class Skill:
                                 effect["base_duration_ms"] = fact["duration"] * 1000
                             if "apply_count" in fact:
                                 effect["num_stacks"] = fact["apply_count"]
+                            else:
+                                effect["num_stacks"] = 1
 
-                            self.onStrikeEffects.append(effect)
+                            if fact["status"].upper() in conditions:
+                                effect["direction"] = "OUTGOING"
+                            else:
+                                effect["direction"] = "INCOMING"
+
+                            effects.append(effect)
                             self.needsManualReview = True
+
+
+        #if both these values are zero the skill is probably a single pulse buff(ie, feel my wrath)
+        #pulse mentions with the api are very inconsistent, so we're just going to assume 1 pulse in this case
+        if hitCount == -1 and pulseCount == -1:
+            self.pulseOnTickList = [self.castDuration]
+            pulseCount = 1
 
 
         #sometimes there are multiple buffs listed, if any of them match the number of hits we make
         #an assumption that each hit applies said buff
         #this is not a perfect assumption and needs to be manually checked
-        for effect in self.onStrikeEffects:
-            if "num_stacks" in effect and effect["num_stacks"] == self.hitCount:
-                effect["on_strike_num_stacks"] = 1
-                self.needsManualReview = True
+        #if it matches both the numHits and numPulses, we just attribute it to strikes rather than pulses
+        for effect in effects:
+            if "num_stacks" in effect:
+                if effect["num_stacks"] == hitCount:
+                    effect["on_strike_num_stacks"] = 1
+                    self.onStrikeEffects.append(effect)
+                elif effect["num_stacks"] == pulseCount:
+                    effect["on_pulse_num_stacks"] = 1
+                    self.onPulseEffects.append(effect)
+                elif hitCount > 0:
+                    self.onStrikeEffects.append(effect)
+                elif pulseCount > 0:
+                    self.onPulseEffects.append(effect)
+
 
 
         #if multiple damage coeffs are listed we need to manually review

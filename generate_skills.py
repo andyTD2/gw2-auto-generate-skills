@@ -98,11 +98,12 @@ def skillToJsonFormat(skill, professions):
         jsonEntry["skill_id"] = skill.id
         jsonEntry["skill_key"] = skill.name
         jsonEntry["weapon_type"] = skill.weaponType
-        jsonEntry["strike_on_tick_list"] = [skill.strikeOnTickList, skill.strikeOnTickList]
-
-
         jsonEntry["cast_duration"] = [skill.castDuration]
 
+        if len(skill.pulseOnTickList) > 0:
+            jsonEntry["pulse_on_tick_list"] = [skill.pulseOnTickList, skill.pulseOnTickList]
+        if len(skill.strikeOnTickList) > 0:
+            jsonEntry["strike_on_tick_list"] = [skill.strikeOnTickList, skill.strikeOnTickList]
         if len(skill.coefficients) > 0:
             jsonEntry["damage_coefficient"] = skill.coefficients[0]
         if skill.cooldown is not None:
@@ -116,6 +117,8 @@ def skillToJsonFormat(skill, professions):
 
         if len(skill.onStrikeEffects) > 0:
             jsonEntry["on_strike_effect_applications"] = skill.onStrikeEffects
+        if len(skill.onPulseEffects) > 0:
+            jsonEntry["on_pulse_effect_applications"] = skill.onPulseEffects
 
         for profession in skill.professions:
             if profession not in professions:
