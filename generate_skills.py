@@ -98,7 +98,7 @@ def skillToJsonFormat(skill, professions):
         jsonEntry["skill_id"] = skill.id
         jsonEntry["skill_key"] = skill.name
         jsonEntry["weapon_type"] = skill.weaponType
-        jsonEntry["cast_duration"] = [skill.castDuration]
+        jsonEntry["cast_duration"] = [int(round((skill.castDuration * 1.5) / 40) * 40), skill.castDuration]
 
         if len(skill.pulseOnTickList) > 0:
             jsonEntry["pulse_on_tick_list"] = [skill.pulseOnTickList, skill.pulseOnTickList]
@@ -107,7 +107,7 @@ def skillToJsonFormat(skill, professions):
         if len(skill.coefficients) > 0:
             jsonEntry["damage_coefficient"] = skill.coefficients[0]
         if skill.cooldown is not None:
-            jsonEntry["cooldown"] = [skill.cooldown * 1000, int(skill.cooldown * .8 * 1000)]
+            jsonEntry["cooldown"] = [int(skill.cooldown * 1000), int(skill.cooldown * .8 * 1000)]
         if not skill.canCrit:
             jsonEntry["can_critical_strike"] = "false"
         if skill.rechargeDuration is not None:
