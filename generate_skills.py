@@ -6,7 +6,7 @@ import sys
 import ntpath
 import re
 from multiprocessing.pool import ThreadPool
-from Skill import Skill
+from Skill import *
 from sys import argv
 
 
@@ -15,10 +15,12 @@ def getSkillData(APIFileName, skills):
         data = json.load(file)
         for entry in data["results"]:
             if entry["skillID"] not in skills:
-                skill = Skill(entry)
+                skill = Skill.createSkillFromAPI(entry)
                 skills[skill.id] = skill
             else:
-                skills[entry["skillID"]].updateCastDur(entry)
+                newCastDuration = updateCastDur(entry)
+                if newCastDuration != -1: 
+                    skills[entry["skillID"]].castDuration = newCastDuration
                 #sometimes there are duplicate skills that are missing cast times, so we need to update the cast time everytime a duplicate is found
                 #otherwise it might default to 0 if there is a missing cast time
 
@@ -68,6 +70,14 @@ def parseSkillTickData(tickDataJsonFileName, skillTickData):
             skillTickData[skill][len(entry["hits"])]["freq"] += 1
             for i in range(0, len(entry["hits"])):
                 skillTickData[skill][len(entry["hits"])]["runningSum"][i] += entry["hits"][i]["tick"]
+
+        #for entry in data["hits_without_cast"]:
+        #    if "skill" in entry:
+        #    skill = entry["skill"]["id"]
+        #    if skill not in skills[skill]:
+        #        newSkill = Skill(skill)
+        #        skills[skill] = newSkill
+
 
 
 def attachTickData(skills, skillTickData):
