@@ -48,7 +48,7 @@ class Skill:
         self.strikeOnTickList = [] if strikeOnTickList is None else strikeOnTickList 
         self.pulseOnTickList = [] if pulseOnTickList is None else pulseOnTickList
         self.professions = [] if professionList is None else professionList 
-        self.id = id
+        self.id = str(id)
         self.onStrikeNumStacks = 0 if onStrikeNumStacks is None else onStrikeNumStacks
         self.name = "UNAMED_SKILL" if name is None else name
         self.weaponType = "empty_handed" if weaponType is None else weaponType
@@ -57,8 +57,8 @@ class Skill:
     @classmethod
     def createSkill(cls, jsonData):
         name = jsonData["skill"]["name"] if "name" in jsonData["skill"] else None
-        id = jsonData["skill"]["id"] if "id" in jsonData["id"] else None
-        return cls(name=name, id=id)
+        id = jsonData["skill"]["id"] if "id" in jsonData["skill"] else None
+        return cls(name=name, id=id, needsManualReview=True)
 
 
     @classmethod
@@ -75,7 +75,7 @@ class Skill:
         strikeOnTickList = []
         pulseOnTickList = []
         professions = []
-        id = jsonData["skillID"]
+        id = str(jsonData["skillID"])
         onStrikeNumStacks = 0
         hitCount = -1
         pulseCount = -1
@@ -197,13 +197,12 @@ class Skill:
             needsManualReview = True
 
         
-        x = cls(id=id, name=name, weaponType=weaponType, professionList=professions, coefficientsList=coefficients,
+        return cls(id=id, name=name, weaponType=weaponType, professionList=professions, coefficientsList=coefficients,
                     rechargeDuration=rechargeDuration, cooldown=cooldown, canCrit=canCrit, ammo=ammo,
                     pulseOnTickList=pulseOnTickList, needsManualReview=needsManualReview, 
                     onStrikeEffectsList=onStrikeEffects, onPulseEffectsList=onPulseEffects, castDuration=castDuration,
                     strikeOnTickList=strikeOnTickList, onStrikeNumStacks=onStrikeNumStacks)
 
-        return x
 
 
 

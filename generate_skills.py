@@ -36,7 +36,7 @@ def generateRawTickData(pathToLogTool, pathToLogFile, pathToTickOutput):
     return process
 
 
-def parseSkillTickData(tickDataJsonFileName, skillTickData):
+def parseSkillTickData(tickDataJsonFileName, skillTickData, skills):
 
 #skillTickData =
 #            {
@@ -71,12 +71,12 @@ def parseSkillTickData(tickDataJsonFileName, skillTickData):
             for i in range(0, len(entry["hits"])):
                 skillTickData[skill][len(entry["hits"])]["runningSum"][i] += entry["hits"][i]["tick"]
 
-        #for entry in data["hits_without_cast"]:
-        #    if "skill" in entry:
-        #    skill = entry["skill"]["id"]
-        #    if skill not in skills[skill]:
-        #        newSkill = Skill(skill)
-        #        skills[skill] = newSkill
+        for entry in data["hits_without_cast"]:
+            if "skill" in entry:
+                skill = str(entry["skill"]["id"])
+                if skill not in skills:
+                    newSkill = Skill.createSkill(entry)
+                    skills[newSkill.id] = newSkill
 
 
 
@@ -131,6 +131,13 @@ def skillToJsonFormat(skill, professions):
         if len(skill.onPulseEffects) > 0:
             jsonEntry["on_pulse_effect_applications"] = skill.onPulseEffects
 
+        if len(skill.professions) == 0:
+            if "MISC_SKILLS" not in professions:
+                professions["MISC_SKILLS"] = {"skills" : []}
+            
+            professions["MISC_SKILLS"]["skills"].append(jsonEntry)
+
+        
         for profession in skill.professions:
             if profession not in professions:
                 professions[profession] = {"skills" : []}
@@ -199,7 +206,7 @@ def main():
     filesProcessed = 0
     for fileName in tickDataFiles:
         print(str(filesProcessed) + "/" + numFiles + "\t\tParsing tick data from file: " + fileName + "...", end="")
-        parseSkillTickData(fileName, skillTickData)
+        parseSkillTickData(fileName, skillTickData, skills)
         print(" DONE")
         filesProcessed += 1
 
