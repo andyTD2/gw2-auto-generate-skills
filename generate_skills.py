@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import ntpath
+import re
 from multiprocessing.pool import ThreadPool
 from Skill import Skill
 from sys import argv
@@ -23,11 +24,11 @@ def getSkillData(APIFileName, skills):
 
 
 
-def generateRawTickData(pathToLogTool, pathToLogFile):
+def generateRawTickData(pathToLogTool, pathToLogFile, pathToTickOutput):
     #run zethox's arcdps log tool to gather tick data
     process = subprocess.run([pathToLogTool,
         pathToLogFile,
-        "tick_data/" + ntpath.basename(pathToLogFile),
+        pathToTickOutput,
         "cast"])
 
     return process
@@ -129,19 +130,20 @@ def skillToJsonFormat(skill, professions):
 
 def writeToOutput(jsonObjects, outPath):
     for profession in jsonObjects:
-        if not os.path.exists(outPath + profession + "/"):
+        if not os.path.exists(outPath + profession + "\\"):
             os.makedirs(outPath + profession)
 
         formattedJsonObj = json.dumps(jsonObjects[profession], indent=4)
 
-        with open(outPath + profession + "/" + profession + ".json", "w") as file:
+        with open(outPath + profession + "\\" + profession + ".json", "w") as file:
             file.write(formattedJsonObj)
 
 
 def getFileList(rootDirPath):
     outFiles = []
     for (root, dir, files) in os.walk(rootDirPath):
-        outFiles.extend(files)
+        for file in files:
+            outFiles.append(root + file)
     return outFiles
 
 def main():
@@ -149,47 +151,45 @@ def main():
         raise Exception("Unexpected number of arguments. Exiting")
         exit()
 
+    curDir = os.path.dirname(os.path.realpath(__file__))
+
     pathToLogTool = sys.argv[1]
-    pathToARCDPSLogs = "arc_log_files"
+    pathToARCDPSLogs = curDir + "\\arc_log_files\\"
     if len(sys.argv) >= 3:
         pathToARCDPSLogs = sys.argv[2]
 
 
-
-
-    skillDataFiles = getFileList("profession_data/")
+    skillDataFiles = getFileList(curDir + "\\profession_data\\")
     numFiles = str(len(skillDataFiles) - 1)
     filesProcessed = 0
 
     skills = {}
     for file in skillDataFiles:
         print(str(filesProcessed) + "/" + numFiles + "\t\tProcessing profession data file: " + file + "...", end="")
-        getSkillData("profession_data/" + file, skills)
+        getSkillData(file, skills)
         filesProcessed += 1
         print(" DONE")
 
 
-
-    if not os.path.exists("tick_data"):
-        os.mkdir("tick_data/")
+    if not os.path.exists(curDir + "\\tick_data\\"):
+        os.mkdir(curDir + "\\tick_data\\")
     arcLogFiles = getFileList(pathToARCDPSLogs)
 
     pool = ThreadPool()
     for filename in arcLogFiles:
-        filePath = os.path.join(pathToARCDPSLogs, filename)
-        pool.apply_async(generateRawTickData, (pathToLogTool, filePath,))
+        pool.apply_async(generateRawTickData, (pathToLogTool, filename, curDir + "\\tick_data\\" + ntpath.basename(filename),))
 
     pool.close()
     pool.join()
 
 
     skillTickData = {}
-    tickDataFiles = getFileList("tick_data")
+    tickDataFiles = getFileList(curDir + "\\tick_data\\")
     numFiles = str(len(tickDataFiles) - 1)
     filesProcessed = 0
     for fileName in tickDataFiles:
         print(str(filesProcessed) + "/" + numFiles + "\t\tParsing tick data from file: " + fileName + "...", end="")
-        parseSkillTickData("tick_data/" + fileName, skillTickData)
+        parseSkillTickData(fileName, skillTickData)
         print(" DONE")
         filesProcessed += 1
 
@@ -207,8 +207,8 @@ def main():
         else:
             skillToJsonFormat(skills[id], professions)
 
-    writeToOutput(professions, "output/skills/")
-    writeToOutput(professionsManualReview, "output/skills(needs-manual-review)/")
+    writeToOutput(professions, curDir + "\\output\\skills\\")
+    writeToOutput(professionsManualReview, curDir + "\\output\\skills(needs-manual-review)\\")
 
     print(" DONE")
 
